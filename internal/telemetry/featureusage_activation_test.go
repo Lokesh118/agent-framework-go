@@ -35,6 +35,7 @@ import (
 	"github.com/microsoft/agent-framework-go/agent"
 	"github.com/microsoft/agent-framework-go/agent/compaction"
 	"github.com/microsoft/agent-framework-go/agent/harness/agentmode"
+	"github.com/microsoft/agent-framework-go/agent/harness/filememory"
 	"github.com/microsoft/agent-framework-go/agent/harness/loop"
 	"github.com/microsoft/agent-framework-go/agent/harness/todo"
 	"github.com/microsoft/agent-framework-go/agent/harness/toolapproval"
@@ -86,6 +87,7 @@ var featureActivationCases = []struct {
 	{"tool-auto-call-invalid", nil, nil},
 	{"tool-approval", []int{3}, nil},
 	{"todo", []int{10}, nil},
+	{"file-memory", []int{5}, nil},
 	{"agent-mode", []int{11}, nil},
 	{"loop", nil, nil},
 	{"loop-invalid", nil, nil},
@@ -459,6 +461,17 @@ func runFeatureActivation(t *testing.T, name string) {
 		activate = func() error { _, err := source.Skills(ctx); return err }
 	case "todo":
 		p := todo.New(nil)
+		activate = func() error { _, _, err := p.Invoking(ctx, invoking); return err }
+	case "file-memory":
+		p, err := filememory.New(t.TempDir(), filememory.Config{})
+		if err != nil {
+			t.Fatal(err)
+		}
+		t.Cleanup(func() {
+			if err := p.Close(); err != nil {
+				t.Error(err)
+			}
+		})
 		activate = func() error { _, _, err := p.Invoking(ctx, invoking); return err }
 	case "agent-mode":
 		p := agentmode.New(agentmode.Config{})

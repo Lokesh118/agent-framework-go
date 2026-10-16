@@ -1,17 +1,5 @@
 // Copyright (c) Microsoft. All rights reserved.
 
-// Package filememory provides search and editing support for file-based agent memory.
-//
-// Storage operations are supplied by filestore.Store. Searches inspect direct
-// files using Go regular expressions and case-insensitive filename patterns.
-// Filename patterns support literal text and * wildcards; ? and brackets are
-// literal characters. Backslashes are path separators, not escape characters.
-// Leading separators, ./ and **/ select the working folder; *.* matches all
-// filenames, including those without extensions.
-// Search matches and line edits share 1-based line numbering. Search results
-// retain each line's LF, CRLF or CR terminator. Edits insert replacement text
-// verbatim, so callers include any terminator they want to keep. An empty
-// replacement deletes the whole line, including its terminator.
 package filememory
 
 import (
@@ -28,9 +16,9 @@ import (
 )
 
 type lineEdit struct {
-	LineNumber   int     `json:"line_number"`
-	NewLine      string  `json:"new_line"`
-	ExpectedLine *string `json:"expected_line,omitempty"`
+	LineNumber   int     `json:"line_number" jsonschema:"1-based line number to replace."`
+	NewLine      string  `json:"new_line" jsonschema:"Literal replacement text including any desired trailing newline; empty text deletes the line."`
+	ExpectedLine *string `json:"expected_line,omitempty" jsonschema:"Optional expected line text; its trailing terminator is ignored when checking for stale edits."`
 }
 
 type searchMatch struct {

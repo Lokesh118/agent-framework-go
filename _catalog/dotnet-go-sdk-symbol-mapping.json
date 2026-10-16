@@ -13478,34 +13478,32 @@
         "area": "agents",
         "assembly": "Microsoft.Agents.AI",
         "mapping": {
-          "go": "",
-          "go_symbols": [],
-          "status": "unmapped",
-          "unreviewed": true
+          "go": "filememory.ListEntry{Type: \"file\"}",
+          "go_symbols": ["agent/harness/filememory.ListEntry"],
+          "status": "adapted",
+          "note": "Memory listings return Go values whose Type is file. Optional descriptions use empty strings with omitempty rather than nullable strings."
         },
         "properties": {
           "Description": {
-            "go_symbols": [],
-            "status": "unmapped",
-            "unreviewed": true
+            "go_symbols": ["agent/harness/filememory.ListEntry.Description"],
+            "status": "adapted",
+            "note": "An absent description is an empty Go string and is omitted from JSON."
           },
           "Name": {
-            "go_symbols": [],
-            "status": "unmapped",
-            "unreviewed": true
+            "go_symbols": ["agent/harness/filememory.ListEntry.Name"],
+            "status": "mapped"
           },
           "Type": {
-            "go_symbols": [],
-            "status": "unmapped",
-            "unreviewed": true
+            "go_symbols": ["agent/harness/filememory.ListEntry.Type"],
+            "status": "mapped"
           }
         },
         "constructors": {
           "FileListEntry()": {
-            "go": "",
-            "go_symbols": [],
-            "status": "unmapped",
-            "unreviewed": true
+            "go": "filememory.ListEntry{Type: \"file\"}",
+            "go_symbols": ["agent/harness/filememory.ListEntry", "agent/harness/filememory.ListEntry.Type"],
+            "status": "adapted",
+            "note": "Use a value literal with Type set to file to reproduce the .NET constructor default; the provider sets this field on every listing result."
           }
         }
       },
@@ -13513,76 +13511,68 @@
         "area": "agents",
         "assembly": "Microsoft.Agents.AI",
         "mapping": {
-          "go": "",
-          "go_symbols": [],
-          "status": "unmapped",
-          "unreviewed": true
+          "go": "filememory.New(rootDirectory, filememory.Config{})",
+          "go_symbols": ["agent/harness/filememory.New", "agent/harness/filememory.Provider"],
+          "status": "partial",
+          "note": "The Go context provider supplies seven memory tools, session working-folder state and index injection over SDK-internal filesystem storage. Public custom-store injection is deferred while the experimental storage contract remains internal. Description sidecars append _description.md to the full filename to avoid collisions across extensions."
         },
         "properties": {
           "StateKeys": {
-            "go_symbols": [],
-            "status": "unmapped",
-            "unreviewed": true
+            "go_symbols": ["agent/harness/filememory.Provider.StateKeys"],
+            "status": "mapped"
           }
         },
         "methods": {
           "Dispose() -> void": {
-            "go": "",
-            "go_symbols": [],
-            "status": "unmapped",
-            "unreviewed": true
+            "go": "provider.Close()",
+            "go_symbols": ["agent/harness/filememory.Provider.Close"],
+            "status": "adapted",
+            "note": "The Go provider owns and closes its filesystem root handle. Its synchronization needs no separate disposal."
           }
         },
         "constructors": {
           "FileMemoryProvider(AgentFileStore, Func<AgentSession, FileMemoryState>, FileMemoryProviderOptions)": {
-            "go": "",
-            "go_symbols": [],
-            "status": "unmapped",
-            "unreviewed": true
+            "go": "filememory.New(rootDirectory, filememory.Config{Instructions: new(\"Remember useful notes.\"), StateInitializer: initializeState})",
+            "go_symbols": ["agent/harness/filememory.New", "agent/harness/filememory.Config", "agent/harness/filememory.Config.Instructions", "agent/harness/filememory.Config.StateInitializer", "agent/harness/filememory.State"],
+            "status": "partial",
+            "note": "The constructor takes a filesystem root directory, returns an error if storage cannot be opened, and owns the storage lifetime. Optional instructions and the synchronous state-initializer callback use a value Config. Public custom-store injection is deferred while the experimental storage contract remains internal."
           }
         },
         "constants": {
           "DeleteFileToolName": {
-            "go": "",
-            "go_symbols": [],
-            "status": "unmapped",
-            "unreviewed": true
+            "go": "filememory.DeleteFileToolName",
+            "go_symbols": ["agent/harness/filememory.DeleteFileToolName"],
+            "status": "mapped"
           },
           "GrepToolName": {
-            "go": "",
-            "go_symbols": [],
-            "status": "unmapped",
-            "unreviewed": true
+            "go": "filememory.GrepToolName",
+            "go_symbols": ["agent/harness/filememory.GrepToolName"],
+            "status": "mapped"
           },
           "LsToolName": {
-            "go": "",
-            "go_symbols": [],
-            "status": "unmapped",
-            "unreviewed": true
+            "go": "filememory.LsToolName",
+            "go_symbols": ["agent/harness/filememory.LsToolName"],
+            "status": "mapped"
           },
           "ReadFileToolName": {
-            "go": "",
-            "go_symbols": [],
-            "status": "unmapped",
-            "unreviewed": true
+            "go": "filememory.ReadFileToolName",
+            "go_symbols": ["agent/harness/filememory.ReadFileToolName"],
+            "status": "mapped"
           },
           "ReplaceLinesToolName": {
-            "go": "",
-            "go_symbols": [],
-            "status": "unmapped",
-            "unreviewed": true
+            "go": "filememory.ReplaceLinesToolName",
+            "go_symbols": ["agent/harness/filememory.ReplaceLinesToolName"],
+            "status": "mapped"
           },
           "ReplaceToolName": {
-            "go": "",
-            "go_symbols": [],
-            "status": "unmapped",
-            "unreviewed": true
+            "go": "filememory.ReplaceToolName",
+            "go_symbols": ["agent/harness/filememory.ReplaceToolName"],
+            "status": "mapped"
           },
           "WriteToolName": {
-            "go": "",
-            "go_symbols": [],
-            "status": "unmapped",
-            "unreviewed": true
+            "go": "filememory.WriteToolName",
+            "go_symbols": ["agent/harness/filememory.WriteToolName"],
+            "status": "mapped"
           }
         }
       },
@@ -13590,24 +13580,23 @@
         "area": "agents",
         "assembly": "Microsoft.Agents.AI",
         "mapping": {
-          "go": "",
-          "go_symbols": [],
-          "status": "unmapped",
-          "unreviewed": true
+          "go": "filememory.Config{}",
+          "go_symbols": ["agent/harness/filememory.Config"],
+          "status": "adapted",
+          "note": "Constructor configuration is a Go value struct that also carries the state-initializer callback."
         },
         "properties": {
           "Instructions": {
-            "go_symbols": [],
-            "status": "unmapped",
-            "unreviewed": true
+            "go_symbols": ["agent/harness/filememory.Config.Instructions"],
+            "status": "mapped"
           }
         },
         "constructors": {
           "FileMemoryProviderOptions()": {
-            "go": "",
-            "go_symbols": [],
-            "status": "unmapped",
-            "unreviewed": true
+            "go": "filememory.Config{}",
+            "go_symbols": ["agent/harness/filememory.Config"],
+            "status": "adapted",
+            "note": "The zero Config uses default instructions and the store root; no options constructor is needed."
           }
         }
       },
@@ -13615,24 +13604,22 @@
         "area": "agents",
         "assembly": "Microsoft.Agents.AI",
         "mapping": {
-          "go": "",
-          "go_symbols": [],
-          "status": "unmapped",
-          "unreviewed": true
+          "go": "filememory.State{}",
+          "go_symbols": ["agent/harness/filememory.State"],
+          "status": "mapped"
         },
         "properties": {
           "WorkingFolder": {
-            "go_symbols": [],
-            "status": "unmapped",
-            "unreviewed": true
+            "go_symbols": ["agent/harness/filememory.State.WorkingFolder"],
+            "status": "mapped"
           }
         },
         "constructors": {
           "FileMemoryState()": {
-            "go": "",
-            "go_symbols": [],
-            "status": "unmapped",
-            "unreviewed": true
+            "go": "filememory.State{}",
+            "go_symbols": ["agent/harness/filememory.State"],
+            "status": "adapted",
+            "note": "The zero-value State has an empty WorkingFolder, matching the constructor's store-root default."
           }
         }
       },
