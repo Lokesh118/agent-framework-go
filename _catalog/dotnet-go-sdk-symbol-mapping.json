@@ -13527,7 +13527,7 @@
             "go": "provider.Close()",
             "go_symbols": ["agent/harness/filememory.Provider.Close"],
             "status": "adapted",
-            "note": "The Go provider owns and closes its filesystem root handle. Its synchronization needs no separate disposal."
+            "note": "Close optionally releases the owned filesystem root handle early and cancels automatic runtime cleanup after success. The runtime cleanup fallback closes storage when the provider and its tools become unreachable; synchronization needs no disposal."
           }
         },
         "constructors": {
@@ -13535,7 +13535,7 @@
             "go": "filememory.New(rootDirectory, filememory.Config{Instructions: new(\"Remember useful notes.\"), StateInitializer: initializeState})",
             "go_symbols": ["agent/harness/filememory.New", "agent/harness/filememory.Config", "agent/harness/filememory.Config.Instructions", "agent/harness/filememory.Config.StateInitializer", "agent/harness/filememory.State"],
             "status": "partial",
-            "note": "The constructor takes a filesystem root directory, returns an error if storage cannot be opened, and owns the storage lifetime. Optional instructions and the synchronous state-initializer callback use a value Config. Public custom-store injection is deferred while the experimental storage contract remains internal."
+            "note": "The constructor takes a filesystem root directory, returns setup errors, and registers runtime cleanup for owned storage; Close can release it early. Optional instructions and the synchronous state initializer use a value Config. Public custom-store injection is deferred while the experimental storage contract remains internal."
           }
         },
         "constants": {
@@ -13989,6 +13989,213 @@
             "go_symbols": [],
             "status": "unmapped",
             "unreviewed": true
+          }
+        }
+      },
+      "HarnessAgent": {
+        "area": "agents",
+        "assembly": "Microsoft.Agents.AI.Harness",
+        "mapping": {
+          "go": "harness.AgentConfig(harness.Config{}, agent.Config{})",
+          "go_symbols": ["agent/harness.AgentConfig", "agent.Config", "agent.Agent"],
+          "status": "adapted",
+          "note": "Source-reviewed at ebcf4db7f9462ef6c377761e0b3159c4c5a73027, outside the current binary-extraction scope. AgentConfig applies stable defaults to an ordinary provider-backed agent and returns setup errors. File memory has runtime cleanup rather than a separate harness lifetime object. Existing middleware and the core agent retain execution, approval, history and sessions. Experimental composition options are excluded; tracing decorates supported model adapters using neutral metadata."
+        },
+        "constructors": {
+          "HarnessAgent(IChatClient, HarnessAgentOptions, ILoggerFactory, IServiceProvider)": {
+            "go": "cfg, _ := harness.AgentConfig(harness.Config{}, agent.Config{}); openaiprovider.NewAgent(client, openaiprovider.AgentConfig{Config: cfg})",
+            "go_symbols": ["agent/harness.AgentConfig", "agent.Config", "agent.Config.Logger", "provider/openaiprovider.NewAgent"],
+            "status": "adapted",
+            "note": "Pass harness options and common agent configuration to AgentConfig before calling the normal provider constructor. Agent identity and logging remain in agent.Config; dependencies are supplied directly instead of through IServiceProvider. Filesystem setup returns an error, and unreachable file-memory providers clean up their handles automatically."
+          }
+        },
+        "constants": {
+          "DefaultInstructions": {
+            "go": "harness.DefaultInstructions",
+            "go_symbols": ["agent/harness.DefaultInstructions"],
+            "status": "adapted",
+            "note": "Built-in Go guidance preserves task decomposition, tool use, progress updates, adapting after failures and concise completion summaries without promising identical prompt wording."
+          }
+        }
+      },
+      "HarnessAgentOptions": {
+        "area": "agents",
+        "assembly": "Microsoft.Agents.AI.Harness",
+        "mapping": {
+          "go": "harness.Config{}",
+          "go_symbols": ["agent/harness.Config", "agent.Config", "agent/harness/toolautocall.Config"],
+          "status": "adapted",
+          "note": "Source-reviewed at ebcf4db7f9462ef6c377761e0b3159c4c5a73027, outside the current binary-extraction scope. Stable options are distributed across harness configuration, common agent configuration and the provider's existing tool-invocation configuration. The 11 MAAI001 composition options are intentional exclusions, not claims that every .NET option was ported."
+        },
+        "properties": {
+          "AIContextProviders": {
+            "go_symbols": ["agent.Config.ContextProviders", "agent/harness.AgentConfig"],
+            "status": "adapted",
+            "note": "Caller context providers follow the enabled Todo, mode, FileMemory and skills providers; AgentConfig does not mutate the caller's slice."
+          },
+          "AgentModeProviderOptions": {
+            "go_symbols": ["agent/harness.Config.AgentMode", "agent/harness/agentmode.Config"],
+            "status": "mapped"
+          },
+          "AgentSkillsSource": {
+            "go_symbols": ["agent/harness.Config.Skills", "agent/skills.ContextProviderOptions.Sources", "agent/skills.Source"],
+            "status": "adapted",
+            "note": "Supply sources through Skills.Sources. Non-nil Skills.Sources or Skills.Skills replaces default working-directory discovery, including empty collections. Default discovery and resource access exclude the reserved agent-file-memory subtree; caller sources retain their own access policy."
+          },
+          "BackgroundAgents": {
+            "go_symbols": [],
+            "status": "intentional",
+            "note": "Intentionally excluded from the Go 0.2.0 non-experimental harness composition because BackgroundAgents is marked MAAI001 experimental.",
+            "experimental": "MAAI001"
+          },
+          "BackgroundAgentsProviderOptions": {
+            "go_symbols": [],
+            "status": "intentional",
+            "note": "Intentionally excluded from the Go 0.2.0 non-experimental harness composition because BackgroundAgentsProviderOptions is marked MAAI001 experimental.",
+            "experimental": "MAAI001"
+          },
+          "ChatHistoryProvider": {
+            "go_symbols": ["agent.Config.HistoryProvider", "agent/harness.AgentConfig"],
+            "status": "adapted",
+            "note": "AgentConfig preserves supplied history or creates session-backed in-memory history. It enables per-service-call persistence, defaults warning/throwing on history conflicts to false, and retains explicit caller conflict settings."
+          },
+          "ChatOptions": {
+            "go_symbols": ["agent.Config.Tools", "agent.Config.RunOptions", "provider/openaiprovider.AgentConfig.Instructions", "provider/openaiprovider.ResponsesNewParams", "provider/openaiprovider.ChatCompletionNewParams", "provider/anthropicprovider.MessageNewParams", "provider/geminiprovider.GenerateContentConfig"],
+            "status": "adapted",
+            "note": "Use common Tools and RunOptions plus the provider's existing native-parameter options instead of a shared ChatOptions class. Harness instructions precede caller instructions, and native model and request settings remain with the selected provider."
+          },
+          "CompactionStrategy": {
+            "go_symbols": [],
+            "status": "intentional",
+            "note": "Intentionally excluded from the Go 0.2.0 non-experimental harness composition because CompactionStrategy is marked MAAI001 experimental. Existing independent Go compaction remains available.",
+            "experimental": "MAAI001"
+          },
+          "Description": {
+            "go_symbols": ["agent.Config.Description"],
+            "status": "mapped"
+          },
+          "DisableAgentModeProvider": {
+            "go_symbols": ["agent/harness.Config.DisableAgentMode"],
+            "status": "mapped"
+          },
+          "DisableAgentSkillsProvider": {
+            "go_symbols": ["agent/harness.Config.DisableSkills"],
+            "status": "mapped"
+          },
+          "DisableApprovalNotRequiredFunctionBypassing": {
+            "go_symbols": ["agent/harness/toolautocall.Config.DisableApprovalNotRequiredFunctionBypassing"],
+            "status": "adapted",
+            "note": "Use the existing provider configuration's ToolAutoCall settings. Safe-function bypassing stays enabled by default; harness configuration does not add another invocation loop or override the setting."
+          },
+          "DisableApprovalResponseBinding": {
+            "go_symbols": ["agent/harness/toolautocall.Config.DisableApprovalResponseBinding"],
+            "status": "adapted",
+            "note": "Use the existing provider configuration's ToolAutoCall settings. Session-backed approval-response binding stays enabled by default and remains independent of harness auto-approval middleware."
+          },
+          "DisableCompaction": {
+            "go_symbols": [],
+            "status": "intentional",
+            "note": "Intentionally excluded from the Go 0.2.0 non-experimental harness composition because DisableCompaction is marked MAAI001 experimental. The harness installs no compaction provider by default.",
+            "experimental": "MAAI001"
+          },
+          "DisableFileMemory": {
+            "go_symbols": ["agent/harness.Config.DisableFileMemory"],
+            "status": "mapped"
+          },
+          "DisableOpenTelemetry": {
+            "go_symbols": ["agent/harness.Config.DisableOpenTelemetry", "provider/otelprovider.MiddlewareConfig.DisableModelTracing"],
+            "status": "adapted",
+            "note": "Disables harness-installed agent, tool and supported model-adapter tracing. Model tracing is enabled by default by the shared middleware for ordinary and harness agents; Go exposes DisableModelTracing to retain agent/tool-only output. Feature-usage tracking has its existing independent opt-out; independently installed application tracing is not removed."
+          },
+          "DisableTodoProvider": {
+            "go_symbols": ["agent/harness.Config.DisableTodo"],
+            "status": "mapped"
+          },
+          "DisableToolAutoApproval": {
+            "go_symbols": ["agent/harness.Config.DisableToolApproval"],
+            "status": "adapted",
+            "note": "Omits standing-rule and auto-approval middleware, not the model provider's tool-approval requirements. Approval-required calls can still pause for a caller decision."
+          },
+          "DisableWebSearch": {
+            "go_symbols": ["agent/harness.Config.DisableWebSearch"],
+            "status": "mapped"
+          },
+          "FileAccessProviderOptions": {
+            "go_symbols": [],
+            "status": "intentional",
+            "note": "Intentionally excluded from the Go 0.2.0 non-experimental harness composition because FileAccessProviderOptions is marked MAAI001 experimental.",
+            "experimental": "MAAI001"
+          },
+          "FileAccessStore": {
+            "go_symbols": [],
+            "status": "intentional",
+            "note": "Intentionally excluded from the Go 0.2.0 non-experimental harness composition because FileAccessStore is marked MAAI001 experimental.",
+            "experimental": "MAAI001"
+          },
+          "FileMemoryStore": {
+            "go_symbols": [],
+            "status": "intentional",
+            "note": "Intentionally excluded from the Go 0.2.0 non-experimental harness composition because FileMemoryStore is marked MAAI001 experimental. FileMemory uses SDK-internal filesystem storage with session-isolated UUID folders rather than a public storage-injection contract.",
+            "experimental": "MAAI001"
+          },
+          "HarnessInstructions": {
+            "go_symbols": ["agent/harness.Config.Instructions", "agent/harness.DefaultInstructions"],
+            "status": "adapted",
+            "note": "Nil uses the built-in guidance; an empty or whitespace-only string omits harness instructions. AgentConfig prepends nonblank guidance before caller run options without replacing caller instructions. Go adapters retain their existing instruction-joining rules."
+          },
+          "Id": {
+            "go_symbols": ["agent.Config.ID"],
+            "status": "mapped"
+          },
+          "LoopAgentOptions": {
+            "go_symbols": [],
+            "status": "intentional",
+            "note": "Intentionally excluded from the Go 0.2.0 non-experimental harness composition because LoopAgentOptions is marked MAAI001 experimental. Existing independent Go loop middleware remains available.",
+            "experimental": "MAAI001"
+          },
+          "LoopEvaluators": {
+            "go_symbols": [],
+            "status": "intentional",
+            "note": "Intentionally excluded from the Go 0.2.0 non-experimental harness composition because LoopEvaluators is marked MAAI001 experimental. The harness does not add a reinvocation loop.",
+            "experimental": "MAAI001"
+          },
+          "MaxContextWindowTokens": {
+            "go_symbols": [],
+            "status": "intentional",
+            "note": "Intentionally excluded from the Go 0.2.0 non-experimental harness composition because MaxContextWindowTokens is marked MAAI001 experimental and configures automatic compaction.",
+            "experimental": "MAAI001"
+          },
+          "MaxOutputTokens": {
+            "go_symbols": [],
+            "status": "intentional",
+            "note": "Intentionally excluded from the Go 0.2.0 non-experimental harness composition because MaxOutputTokens is marked MAAI001 experimental. Provider-native output-token settings remain available independently.",
+            "experimental": "MAAI001"
+          },
+          "MaximumIterationsPerRequest": {
+            "go_symbols": ["agent/harness/toolautocall.Config.MaximumIterationsPerRequest"],
+            "status": "adapted",
+            "note": "Use the existing provider configuration's ToolAutoCall settings. Nil retains the tool middleware's default of 40; Go additionally permits zero to disable automatic invocation. The harness does not replace the provider's tool loop."
+          },
+          "Name": {
+            "go_symbols": ["agent.Config.Name"],
+            "status": "mapped"
+          },
+          "OpenTelemetrySourceName": {
+            "go_symbols": ["agent/harness.Config.OpenTelemetry", "provider/otelprovider.MiddlewareConfig.SourceName"],
+            "status": "adapted",
+            "note": "Sets the shared agent/tool/model instrumentation scope. Empty retains the Go SDK scope github.com/microsoft/agent-framework-go rather than the .NET scope name. Global tracer/meter providers remain application-owned."
+          },
+          "ToolApprovalAgentOptions": {
+            "go_symbols": ["agent/harness.Config.ToolApproval", "agent/harness/toolapproval.Config"],
+            "status": "mapped"
+          }
+        },
+        "constructors": {
+          "HarnessAgentOptions()": {
+            "go": "harness.Config{}",
+            "go_symbols": ["agent/harness.Config"],
+            "status": "adapted",
+            "note": "Use the zero-value Go configuration for enabled stable components. Common agent settings are passed separately to AgentConfig, and tool-invocation settings remain on the normal provider configuration."
           }
         }
       },
@@ -24414,6 +24621,24 @@
             "go_symbols": [],
             "status": "unmapped",
             "unreviewed": true
+          }
+        }
+      },
+      "ChatClientHarnessExtensions": {
+        "area": "agents",
+        "assembly": "Microsoft.Agents.AI.Harness",
+        "mapping": {
+          "go": "harness.AgentConfig(harness.Config{}, agent.Config{})",
+          "go_symbols": ["agent/harness.AgentConfig"],
+          "status": "adapted",
+          "note": "Source-reviewed at ebcf4db7f9462ef6c377761e0b3159c4c5a73027, outside the current binary-extraction scope. Go uses a top-level configuration function and the normal provider constructor rather than an extension-method container."
+        },
+        "methods": {
+          "AsHarnessAgent(IChatClient, HarnessAgentOptions, ILoggerFactory, IServiceProvider) -> HarnessAgent": {
+            "go": "cfg, _ := harness.AgentConfig(harness.Config{}, agent.Config{}); openaiprovider.NewAgent(client, openaiprovider.AgentConfig{Config: cfg})",
+            "go_symbols": ["agent/harness.AgentConfig", "provider/openaiprovider.NewAgent", "provider/openaiprovider.AgentConfig"],
+            "status": "adapted",
+            "note": "Apply AgentConfig before calling the ordinary provider constructor. The result remains an agent.Agent, with automatic file-memory cleanup rather than a separate resource-owning harness object."
           }
         }
       },

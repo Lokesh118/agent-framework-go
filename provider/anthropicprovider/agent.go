@@ -23,6 +23,7 @@ import (
 	"github.com/microsoft/agent-framework-go/agent"
 	"github.com/microsoft/agent-framework-go/agent/format/jsonformat"
 	"github.com/microsoft/agent-framework-go/agent/harness/toolautocall"
+	"github.com/microsoft/agent-framework-go/internal/modelcall"
 	"github.com/microsoft/agent-framework-go/internal/telemetry"
 	"github.com/microsoft/agent-framework-go/message"
 	"github.com/microsoft/agent-framework-go/tool"
@@ -72,7 +73,10 @@ func NewAgent(aclient anthropic.Client, config AgentConfig) *agent.Agent {
 	}
 	providerMiddlewares := []agent.Middleware{toolautocall.New(autoCall)}
 	return agent.New(agent.ProviderConfig{
-		Run:          c.run,
+		Run: modelcall.Wrap(c.run, func(options []agent.Option) string {
+			params, _ := agent.GetOption(options, MessageNewParams)
+			return cmp.Or(params.Model, config.Model)
+		}),
 		ProviderName: "anthropic",
 		Middlewares:  providerMiddlewares,
 		Format:       c.formatOf,
@@ -111,6 +115,7 @@ func (a *client) run(ctx context.Context, messages []*message.Message, options .
 				yield(nil, err)
 			}
 		}
+		modelcall.RecordResponse(ctx, resp.Model, resp.ID)
 		functions := make(map[int]*message.FunctionCallContent)
 		contents := make([]message.Content, 0, len(resp.Content))
 		for i, c := range resp.Content {
@@ -157,6 +162,7 @@ func (a *client) run(ctx context.Context, messages []*message.Message, options .
 			var contents []message.Content
 			switch event := event.AsAny().(type) {
 			case anthropic.MessageStartEvent:
+				modelcall.RecordResponse(ctx, event.Message.Model, event.Message.ID)
 				messageID = cmp.Or(messageID, event.Message.ID)
 				usage.Add(toUsageDetails(event.Message.Usage))
 			case anthropic.MessageDeltaEvent:
